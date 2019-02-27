@@ -18,5 +18,5 @@ python setup.py install
 Import gcornilib from within your python file and use it:
 
 ```
-from gcornilib import DataManipulationV2 as dm2
+from gcornilib.DataManipulation import MLPrePostProcessing as dm2
 ```

@@ -1,4 +1,4 @@
-from gcornilib import DataManipulationV2 as dm2
+from gcornilib.DataManipulation import MLPrePostProcessing as dm2
 import pandas as pd
 import numpy as np
 
