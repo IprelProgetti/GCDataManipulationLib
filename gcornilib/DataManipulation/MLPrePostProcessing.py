@@ -164,6 +164,8 @@ class DataBalancer(object):
         return pd.DataFrame(scaled_data, columns=df_columns)
 
     def rescale(self, predictions):
+        # ASSUMPTION: columns to predict are always the last ones
+
         # make sure scaling has been done before
         if self._helpers is None:
             raise AssertionError(
@@ -179,7 +181,7 @@ class DataBalancer(object):
         )
 
         # return only the first NxM sub-matrix of the helper (rescaled predictions)
-        rescaled_data = rescaled_struct[:predictions.shape[0], :predictions.shape[1]]
+        rescaled_data = rescaled_struct[:predictions.shape[0], -predictions.shape[1]:]
 
         return rescaled_data
 
