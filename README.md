@@ -20,3 +20,10 @@ Import gcornilib from within your python file and use it:
 ```
 from gcornilib.DataManipulation import MLPrePostProcessing as dm2
 ```
+
+### Run example
+
+```
+cd gcornilib/Examples
+python lstm.py | main.py
+```
