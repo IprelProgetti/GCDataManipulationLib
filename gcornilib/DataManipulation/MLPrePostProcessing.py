@@ -171,7 +171,7 @@ class DataBalancer(object):
             )
 
         # put predictions in the first NxM sub-matrix of the helper
-        self._helpers[:predictions.shape[0], :predictions.shape[1]] = predictions
+        self._helpers[:predictions.shape[0], -predictions.shape[1]:] = predictions
 
         # rescale the whole helper structure (to match the scaler data expected size)
         rescaled_struct = self._scaler.inverse_transform(
