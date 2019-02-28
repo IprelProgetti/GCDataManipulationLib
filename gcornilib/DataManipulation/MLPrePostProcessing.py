@@ -144,6 +144,29 @@ def series_to_supervised(df, n_in=1, n_out=1, features_filter=None, target_filte
     return agg
 
 
+##############
+# Finalizers #
+##############
+
+
+def dataset_splitter(df, n_targets=1, tv_perc=0.8):
+    # "horizontal" split (row-based) - train vs valid
+    n_train = int(df.shape[0] * tv_perc)
+    n_valid = int(df.shape[0] - n_train)
+
+    df_train, df_valid = df.head(n_train), df.tail(n_valid)
+
+    # "vertical" split (column-based) - features vs targets
+    X_train, y_train = df_train[df_train.columns[:-n_targets]], df_train[df_train.columns[-n_targets:]]
+    X_valid, y_valid = df_valid[df_valid.columns[:-n_targets]], df_valid[df_valid.columns[-n_targets:]]
+
+    # values extractions
+    X_train, X_valid = X_train.values, X_valid.values
+    y_train, y_valid = y_train.values, y_valid.values
+
+    return (X_train, y_train), (X_valid, y_valid)
+
+
 ##################
 # Data balancing #
 ##################
