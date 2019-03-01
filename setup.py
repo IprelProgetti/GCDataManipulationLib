@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="gcornilib-horns-g",
-    version="0.0.2",
+    version="0.0.3",
     author="Gabriele Corni",
     author_email="gabriele_corni@iprel.it",
     description="Data manipulation pipeline for Machine Learning datasets",
