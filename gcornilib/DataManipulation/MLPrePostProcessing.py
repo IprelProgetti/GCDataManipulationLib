@@ -79,32 +79,32 @@ def convert_data_to_type(df, target_type, column_filter=None):
     return df
 
 
-def encode_string_labels(df):
-    def do_encoding(values, str_columns):
-        encoder = LabelEncoder()
-        encoded = encoder.fit_transform(
-            values[:, str_columns].ravel()
-        )
-        values[:, str_columns] = encoded.reshape(-1, len(str_columns))
-        return values
-
-    # DataFrame columns
-    all_cols_names = list(df.columns.values)
-    # DataFrame string columns
-    str_cols_names = list(df.select_dtypes(include='object').columns.values)
-
-    # Do nothing if no string columns are found
-    if not str_cols_names:
-        return df
-
-    # DataFrame string columns indexes
-    str_indexes = [all_cols_names.index(str_col) for str_col in str_cols_names]
-    # New DataFrame values
-    encoded_values = do_encoding(df.values, str_indexes)
-    # Pack original columns with encoded values
-    df = pd.DataFrame(encoded_values, columns=all_cols_names)
-
-    return df
+# def encode_string_labels(df):
+#     def do_encoding(values, str_columns):
+#         encoder = LabelEncoder()
+#         encoded = encoder.fit_transform(
+#             values[:, str_columns].ravel()
+#         )
+#         values[:, str_columns] = encoded.reshape(-1, len(str_columns))
+#         return values
+#
+#     # DataFrame columns
+#     all_cols_names = list(df.columns.values)
+#     # DataFrame string columns
+#     str_cols_names = list(df.select_dtypes(include='object').columns.values)
+#
+#     # Do nothing if no string columns are found
+#     if not str_cols_names:
+#         return df
+#
+#     # DataFrame string columns indexes
+#     str_indexes = [all_cols_names.index(str_col) for str_col in str_cols_names]
+#     # New DataFrame values
+#     encoded_values = do_encoding(df.values, str_indexes)
+#     # Pack original columns with encoded values
+#     df = pd.DataFrame(encoded_values, columns=all_cols_names)
+#
+#     return df
 
 
 def series_to_supervised(
@@ -182,6 +182,39 @@ def dataset_splitter(df, n_targets=1, tv_perc=0.8):
 ##################
 # Data balancing #
 ##################
+
+
+class LabelHandler(object):
+    def __init__(self):
+        self._encoder = LabelEncoder()
+
+    def encode_string_labels(self, df):
+        def do_encoding(values):
+            original_shape = values.shape
+            encoded = self._encoder.fit_transform(values.ravel()).reshape(original_shape)
+
+            return encoded
+
+        # Get DataFrame string columns
+        str_cols_names = list(df.select_dtypes(include='object').columns.values)
+
+        # Do nothing if no string columns are found
+        if not str_cols_names:
+            return df
+
+        # Encode DataFrame string values
+        encoded_values = do_encoding(df[str_cols_names].values)
+
+        # Replace string values with their encoding
+        df[str_cols_names] = encoded_values
+
+        return df
+
+    def decode_string_labels(self, predictions):
+        original_shape = predictions.shape
+        decoded_data = self._encoder.inverse_transform(predictions.ravel()).reshape(original_shape)
+
+        return decoded_data
 
 
 class DataBalancer(object):
