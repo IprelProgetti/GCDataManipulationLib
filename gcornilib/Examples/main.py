@@ -8,9 +8,11 @@ if __name__ == "__main__":
     #
     # setup your data preprocessing pipeline
     #
+    label_handler = dm2.LabelHandler()
+
     df = dm2.load_dataset_csv("/users/cornigab/Documents/jptnotebooks/gt.csv")\
         .pipe(dm2.drop_columns, ['StatoPLC', 'Posizione'])\
-        .pipe(dm2.encode_string_labels)\
+        .pipe(label_handler.encode_string_labels)\
         .pipe(dm2.convert_data_to_type, 'float32')\
         .pipe(dm2.convert_data_to_type, 'int32', 'CodiceAllarme')\
         .pipe(dm2.series_to_supervised, n_in=1, n_out=3, target_filter='Velocita')\
@@ -52,7 +54,8 @@ if __name__ == "__main__":
 
     # Do some predictions
     predictions = np.array([[5.], [2.5]])
-
-    rsd = sc.rescale(predictions)
+    pred_col = ['b']
+    rsd = sc.rescale(predictions, pred_col)
+    print(rsd.shape)
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        print(pd.DataFrame(rsd, columns="a ".split()))
+        print(pd.DataFrame(rsd.reshape(-1, len(pred_col)), columns=pred_col))
