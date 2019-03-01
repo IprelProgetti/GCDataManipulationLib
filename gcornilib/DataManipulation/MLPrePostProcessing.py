@@ -227,31 +227,54 @@ class DataBalancer(object):
         df_columns = list(df.columns.values)
 
         scaled_data = self._scaler.fit_transform(df_values)
-        self._helpers = scaled_data
+        scaled_df = pd.DataFrame(scaled_data, columns=df_columns)
 
-        return pd.DataFrame(scaled_data, columns=df_columns)
+        # Must be a DataFrame to exploit columns position information
+        self._helpers = scaled_df.copy()
 
-    def rescale(self, predictions):
-        # ASSUMPTION: columns to predict are always the last ones
+        return scaled_df
 
-        # make sure scaling has been done before
+    def rescale(self, predictions, columns):
+        # ASSUMPTION: DataSet rows are always >= than batched prediction rows
+
+        # Make sure scaling has been done before
         if self._helpers is None:
             raise AssertionError(
                 "You should have scaled your data before training. Please scale data and retrain your model first"
             )
 
+        # Save original number of predictions
+        N = predictions.shape[0]
+
+        # Stack future time step predictions of the same column vertically, one below the other
+        predictions = predictions.reshape(-1, len(columns))
+
+        # # Now predictions is a numpy array with one column for each predicted variable
+        # # Predicted time steps are collapsed within each feature column according to the same order
+
+        # Fetch helper values for rescaling, as many rows as needed (nb_prediction_rows * nb_future_time_steps)
+        helper_df = self._helpers.head(predictions.shape[0]).copy()
+
+        # Put scaled predictions within the proper columns
+        helper_df[columns] = predictions
+
         # put predictions in the first NxM sub-matrix of the helper
-        self._helpers[:predictions.shape[0], -predictions.shape[1]:] = predictions
+        # self._helpers[:predictions.shape[0], -predictions.shape[1]:] = predictions
+        # self._helpers[columns] = predictions
+        # helper_values = self._helpers[columns].values
+        # helper_values[:predictions.shape[0], :] = predictions
 
         # rescale the whole helper structure (to match the scaler data expected size)
         rescaled_struct = self._scaler.inverse_transform(
-            self._helpers
+            helper_df.values
         )
 
-        # return only the first NxM sub-matrix of the helper (rescaled predictions)
-        rescaled_data = rescaled_struct[:predictions.shape[0], -predictions.shape[1]:]
+        helper_df[helper_df.columns.values] = rescaled_struct
 
-        return rescaled_data
+        # return only the first NxM sub-matrix of the helper (rescaled predictions)
+        rescaled_data = helper_df[columns].values
+
+        return rescaled_data.reshape(N, -1, len(columns))
 
 
 ##########################
