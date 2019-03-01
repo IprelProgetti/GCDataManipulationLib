@@ -107,7 +107,18 @@ def encode_string_labels(df):
     return df
 
 
-def series_to_supervised(df, n_in=1, n_out=1, features_filter=None, target_filter=None, drop_nan=True):
+def series_to_supervised(
+        df,
+        n_in=1, n_out=1,
+        features_filter=None, target_filter=None,
+        features_steps=1, target_steps=1,
+        drop_nan=True):
+    # ASSUMPTION: steps back(n_in)/ahead(n_out) are referred to the data sampling interval
+    # # i.e.: target_steps=5 aims to predict:
+    # #         the next 5 minutes if data is sampled every minute
+    # #         the next 5 hours if data is sampled every hour
+    # #         the next 40 seconds if data is sampled every 8 second
+
     # Containers for target values
     # # cols:   List of (maybe shifted) DataFrames
     # # names:  List of strings
@@ -117,15 +128,16 @@ def series_to_supervised(df, n_in=1, n_out=1, features_filter=None, target_filte
     features_filter = cast_param_input(features_filter)
     tdf = df.copy() if not features_filter else df[features_filter]
 
-    for i in range(n_in, 0, -1):
+    for i in range(n_in, 0, -features_steps):
         cols.append(tdf.shift(i))
         names += ['{0}(t-{1})'.format(j, i) for j in list(tdf.columns.values)]
 
     # forecast sequence (t, t+1, ... t+n) ==> target columns
     target_filter = cast_param_input(target_filter)
     pdf = df.copy() if not target_filter else df[target_filter]
+    # target_range = range(0, n_out) if target_steps == 1 else range(target_steps, n_out+1, target_steps)
 
-    for i in range(0, n_out):
+    for i in range(0, n_out, target_steps):
         cols.append(pdf.shift(-i))
         if i == 0:
             names += ['{0}(t)'.format(j) for j in list(pdf.columns.values)]
