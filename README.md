@@ -1,7 +1,14 @@
 # GCDataManipulationLib
 Data manipulation library to easily move from/to narrow/wide table representations. 
 
-**Current version:** gcornilib v0.0.3
+**Current version:** gcornilib v1.0.0
+
+**What's new?**
+
+* multi input and multi output column selection
+* configurable training and predicting time steps
+* support for multi-variable and multi-time re-scale to the original variable range
+* automatic label encoder/decoder
 
 ## Usage
 

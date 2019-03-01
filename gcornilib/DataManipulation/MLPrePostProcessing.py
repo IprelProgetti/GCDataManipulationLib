@@ -237,6 +237,8 @@ class DataBalancer(object):
     def rescale(self, predictions, columns):
         # ASSUMPTION: DataSet rows are always >= than batched prediction rows
 
+        # # # Here prediction is shaped (N, ts*targets)
+
         # Make sure scaling has been done before
         if self._helpers is None:
             raise AssertionError(
@@ -249,6 +251,8 @@ class DataBalancer(object):
         # Stack future time step predictions of the same column vertically, one below the other
         predictions = predictions.reshape(-1, len(columns))
 
+        # # # Here prediction is shaped (N*ts, targets)
+
         # # Now predictions is a numpy array with one column for each predicted variable
         # # Predicted time steps are collapsed within each feature column according to the same order
 
@@ -258,23 +262,26 @@ class DataBalancer(object):
         # Put scaled predictions within the proper columns
         helper_df[columns] = predictions
 
-        # put predictions in the first NxM sub-matrix of the helper
-        # self._helpers[:predictions.shape[0], -predictions.shape[1]:] = predictions
-        # self._helpers[columns] = predictions
-        # helper_values = self._helpers[columns].values
-        # helper_values[:predictions.shape[0], :] = predictions
-
-        # rescale the whole helper structure (to match the scaler data expected size)
+        # Rescale the whole helper structure (to match the scaler data expected size)
         rescaled_struct = self._scaler.inverse_transform(
             helper_df.values
         )
 
-        helper_df[helper_df.columns.values] = rescaled_struct
+        # # # Here prediction is still shaped (N*ts, targets)
 
-        # return only the first NxM sub-matrix of the helper (rescaled predictions)
+        # Update the helper DataFrame with rescaled values.
+        # This is needed because we don't know the indexes of the predicted columns.
+        # Hence, we update the DataFrame...
+        helper_df[helper_df.columns.values] = rescaled_struct
+        # ...and extract predicted columns by name
         rescaled_data = helper_df[columns].values
 
-        return rescaled_data.reshape(N, -1, len(columns))
+        # Finally, we return predictions ordered by future time step and predicted column
+        rescaled_data = rescaled_data.reshape(N, -1, len(columns))
+
+        # # # Here prediction is shaped (N, ts, targets)
+
+        return rescaled_data
 
 
 ##########################
