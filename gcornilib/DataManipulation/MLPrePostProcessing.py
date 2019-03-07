@@ -229,14 +229,11 @@ class DataBalancer(object):
         scaled_data = self._scaler.fit_transform(df_values)
         scaled_df = pd.DataFrame(scaled_data, columns=df_columns)
 
-        # Must be a DataFrame to exploit columns position information
-        self._helpers = scaled_df.copy()
-
+        # Save ordered list of columns to exploit columns position information
+        self._helpers = df_columns
         return scaled_df
 
     def rescale(self, predictions, columns):
-        # ASSUMPTION: DataSet rows are always >= than batched prediction rows
-
         # # # Here prediction is shaped (N, ts*targets)
 
         # Make sure scaling has been done before
@@ -257,7 +254,8 @@ class DataBalancer(object):
         # # Predicted time steps are collapsed within each feature column according to the same order
 
         # Fetch helper values for rescaling, as many rows as needed (nb_prediction_rows * nb_future_time_steps)
-        helper_df = self._helpers.head(predictions.shape[0]).copy()
+        helper_np = np.zeros((predictions.shape[0], len(self._helpers)))
+        helper_df = pd.DataFrame(helper_np, columns=self._helpers)
 
         # Put scaled predictions within the proper columns
         helper_df[columns] = predictions

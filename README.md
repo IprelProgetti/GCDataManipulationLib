@@ -1,7 +1,7 @@
 # GCDataManipulationLib
 Data manipulation library to easily move from/to narrow/wide table representations. 
 
-**Current version:** gcornilib v1.0.0
+**Current version:** gcornilib v1.0.1
 
 **What's new?**
 

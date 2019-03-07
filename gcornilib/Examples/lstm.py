@@ -18,7 +18,7 @@ feat_shape = (PAST_STEPS//feat_steps, len(feat_ft))
 
 # Target Params
 targ_ft = ['Posizione', 'Forza']
-STEPS_AHEAD = 2
+STEPS_AHEAD = 3
 target_steps = 1
 targ_shape = (STEPS_AHEAD//target_steps, len(targ_ft))
 
@@ -40,8 +40,8 @@ if __name__ == "__main__":
               n_out=STEPS_AHEAD,
               features_filter=feat_ft,
               target_filter=targ_ft,
-              features_steps=1,
-              target_steps=1
+              features_steps=feat_steps,
+              target_steps=target_steps
               ) \
         .pipe(dm2.dataset_splitter,
               n_targets=reduce(np.multiply, targ_shape),
